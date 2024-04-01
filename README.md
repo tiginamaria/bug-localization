@@ -1,6 +1,6 @@
 # Bug Localization
 
-This folder contains code for **Bug Localization** task in **Long Code Arena** 🏟 benchmark. Challenge: 
+This folder contains code for **Bug Localization** benchmark. Challenge: 
 given an issue with bug description, identify the files within the project that need to be modified
 to address the reported bug.
 
