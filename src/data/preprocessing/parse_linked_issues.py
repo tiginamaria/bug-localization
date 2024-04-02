@@ -8,8 +8,23 @@ from omegaconf import DictConfig
 from src.utils.jsonl_utils import get_jsonl_data, save_jsonl_data
 from src.utils.processing_utils import process_repos_data
 
+KEYWORDS = {
+    "close",
+    "closes",
+    "closed",
+    "fix",
+    "fixes",
+    "fixed",
+    "resolve",
+    "resolves",
+    "resolved",
+    "solve",
+    "solves",
+    "solved",
+}
 
-def parse_linked_issues_from_comment(comment_text: str) -> List[Tuple[int, str]]:
+
+def parse_linked_issues_from_comment(comment_text: str) -> List[Tuple[int, str, str]]:
     """
     Parse issue links from comments text according to documentation
     https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/autolinked-references-and-urls
@@ -19,26 +34,32 @@ def parse_linked_issues_from_comment(comment_text: str) -> List[Tuple[int, str]]
 
     patterns = {
         # https://github.com/jlord/sheetsee.js/issues/26
-        "issue_link": r"https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/(?P<issue_number>\d+)",
+        "issue_link": r"(\w+\s)?https:\/\/github\.com\/[^\/\s]+\/[^\/\s]+\/issues\/(?P<issue_number>\d+)(\s\w+)?",
         # #26
-        "hash": r"^|\s+#(?P<issue_number>\d+)",
+        "hash": r"(\w+\s)?#(?P<issue_number>\d+)(\s\w+)?",
         # GH-26
-        "slash": r"GH\-(?P<issue_number>\d+)",
+        "slash": r"(\w+\s)?gh\-(?P<issue_number>\d+)(\s\w+)?",
         # jlord/sheetsee.js#26
-        "file": r"[^\/\s]+\/[^\/\s]+#(?P<issue_number>\d+)",
+        "file": r"(\w+\s)?[^\/\s]+\/[^\/\s]+#(?P<issue_number>\d+)(\s\w+)?",
     }
 
     linked_issues = []
     for p_type, p in patterns.items():
         try:
-            issue_ids = re.findall(p, comment_text)
+            issue_ids = re.findall(p, comment_text.lower())
         except Exception as e:
             print(f"Can not parse issue links from text:\n{comment_text}", e)
             continue
-        for issue_id in issue_ids:
+        for keyword_before, issue_id, keyword_after in issue_ids:
+            if keyword_before.strip() in KEYWORDS:
+                keyword = keyword_before
+            elif keyword_after.strip() in KEYWORDS:
+                keyword = keyword_after
+            else:
+                keyword = ""
             if not issue_id.isdigit():
                 continue
-            linked_issues.append((int(issue_id), p_type))
+            linked_issues.append((int(issue_id), keyword.strip(), p_type))
 
     return linked_issues
 
@@ -84,7 +105,7 @@ def parse_linked_issues_from_comments(
             continue
         parsed_issue_links = parse_linked_issues_from_comment(comment['body'])
         comment_html_url = comment['html_url']
-        for issue_id, link_type in parsed_issue_links:
+        for issue_id, link_keyword, link_type in parsed_issue_links:
             issues_links.append(
                 {
                     # https://github.com/umple/umple/issues/733#issuecomment-185940279
@@ -95,6 +116,8 @@ def parse_linked_issues_from_comments(
                     "linked_issue_html_url": f"https://github.com/{repo_owner}/{repo_name}/issues/{issue_id}",
                     # issue_link|hash|slash|file
                     "link_type": link_type,
+                    # keyword
+                    "link_keyword": link_keyword,
                 }
             )
 

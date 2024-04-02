@@ -32,3 +32,7 @@ def create_run_directory(baseline_results_path: str) -> tuple[str, int]:
 def save_config(config: DictConfig, path: str):
     with open(os.path.join(path, 'config.yaml'), 'w') as f:
         f.write(OmegaConf.to_yaml(config))
+
+
+def is_test_file(file_path: str):
+    return any(test_dir in file_path.lower() for test_dir in ['test/', 'tests/'])

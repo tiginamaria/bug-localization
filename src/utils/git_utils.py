@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple, Optional
 
 import git
 
+from src.utils.file_utils import is_test_file
+
 
 def get_changed_files_between_commits(repo_path: str, first_commit_sha: str, second_commit_sha: str,
                                       extensions: Optional[list[str]] = None) -> List[str]:
@@ -148,9 +150,12 @@ def get_repo_content_on_commit(repo_path: str, commit_sha: str,
             file_path = str(blob.path)
             if extensions is not None and not any(file_path.endswith(ext) for ext in extensions):
                 continue
-            if ignore_tests and any(test_dir in file_path.lower() for test_dir in ['test/', 'tests/']):
+            if ignore_tests and is_test_file(file_path):
                 continue
-            with open(os.path.join(repo_path, file_path), "r") as file:
+            full_file_path = os.path.join(repo_path, file_path)
+            if not os.path.isfile(full_file_path):
+                continue
+            with open(full_file_path, "r") as file:
                 try:
                     content = file.read()
                     file_contents[file_path] = str(content)
