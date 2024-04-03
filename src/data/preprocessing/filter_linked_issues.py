@@ -163,10 +163,15 @@ def filter_linked_issues(
             continue
 
         # Check issue language is english
-        issue_languages = detect_langs(linked_issue['body'])
-        if len(issue_languages) > 1 or issue_languages[0].lang != 'en':
-            print(f"Issue is not in english. "
-                  f"Skipping pull request {pull_request['html_url']}")
+        try:
+            issue_languages = detect_langs(linked_issue['body'])
+            if len(issue_languages) > 1 or issue_languages[0].lang != 'en':
+                print(f"Issue is not in english. "
+                      f"Skipping pull request {pull_request['html_url']}")
+                continue
+        except Exception as e:
+            print(f"Can not detect language. "
+                  f"Skipping pull request {pull_request['html_url']}", e)
             continue
 
         if (pull_id, linked_issue_id) not in filtered_parsed_issue_links_unique:
@@ -178,7 +183,7 @@ def filter_linked_issues(
                 "link_type": parsed_issue_link['link_type'],
                 "link_keyword": parsed_issue_link['link_keyword'],
                 "links_count": links_count,
-                "issue_language": issue_languages
+                "issue_language": str(issue_languages)
             })
 
     print(f"Left issues links: {len(filtered_parsed_issue_links)}")

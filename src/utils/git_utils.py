@@ -155,13 +155,15 @@ def get_repo_content_on_commit(repo_path: str, commit_sha: str,
             full_file_path = os.path.join(repo_path, file_path)
             if not os.path.isfile(full_file_path):
                 continue
-            with open(full_file_path, "r") as file:
-                try:
-                    content = file.read()
-                    file_contents[file_path] = str(content)
-                except Exception as e:
-                    file_contents[file_path] = ""
-                    # print(f"Can not read file with ext {file_path}. Replace with empty string...", e)
-
+            try:
+                with open(full_file_path, "r") as file:
+                    try:
+                        content = file.read()
+                        file_contents[file_path] = str(content)
+                    except Exception as e:
+                        file_contents[file_path] = ""
+                        # print(f"Can not read file with ext {file_path}. Replace with empty string...", e)
+            except Exception as e:
+                file_contents[file_path] = ""
     repo.git.checkout('HEAD', '.')
     return file_contents
