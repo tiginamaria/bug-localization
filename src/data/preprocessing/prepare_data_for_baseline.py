@@ -5,18 +5,10 @@ from typing import List
 import hydra
 import pandas as pd
 from omegaconf import DictConfig
-from langdetect import detect
 
 from src.utils.file_utils import get_file_exts
 from src.utils.git_utils import get_diff_between_commits, parse_changed_files_from_diff
 from src.utils.jsonl_utils import get_jsonl_data, get_repos
-
-
-def has_test_files(changed_files: List[str]) -> bool:
-    for file in changed_files:
-        if "/test" in file.lower() or "test_" in file.lower():
-            return True
-    return False
 
 
 def get_repo_records(repo: dict, config: DictConfig) -> List[dict]:
@@ -64,8 +56,9 @@ def get_repo_records(repo: dict, config: DictConfig) -> List[dict]:
                     "comment_url": issues_link['comment_html_url'],
                     "links_count": issues_link['links_count'],
                     "issue_title": str(issue['title']),
+                    "issue_language": str(issues_link["issue_language"]),
+                    "link_keyword": issues_link["link_keyword"],
                     "issue_body": str(issue['body']),
-                    "issue_body_langauge": str(detect(issue['body'])),
                     "base_sha": pull['base']['sha'],
                     "head_sha": pull['head']['sha'],
                     "diff_url": f"https://github.com/{repo_owner}/{repo_name}/compare/{pull['base']['sha']}...{pull['head']['sha']}",

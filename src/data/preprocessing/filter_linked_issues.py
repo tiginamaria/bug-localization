@@ -4,9 +4,10 @@ from collections import defaultdict
 from typing import Dict, List, Set
 
 import hydra
+from langdetect import detect_langs
 from omegaconf import DictConfig
 
-from src.utils.file_utils import get_file_exts
+from src.utils.file_utils import get_file_exts, is_test_file
 from src.utils.git_utils import get_repo_content_on_commit, get_diff_between_commits, parse_changed_files_from_diff
 from src.utils.jsonl_utils import get_jsonl_data, save_jsonl_data
 from src.utils.processing_utils import process_repos_data
@@ -57,7 +58,7 @@ def filter_linked_issues(
                     url_to_id(issue['html_url']) not in pulls_by_id}
 
     # Pull to issue relation without duplications
-    issue_to_linked_issues: Dict[int, Set[int]] = defaultdict(set)
+    issue_links: Dict[int, Set[int]] = defaultdict(set)
 
     for parsed_issue_link in parsed_issues_links:
         issue_id = url_to_id(parsed_issue_link['issue_html_url'])
@@ -65,7 +66,7 @@ def filter_linked_issues(
         if (issue_id in pulls_by_id and linked_issue_id in issues_by_id) or (
                 issue_id in issues_by_id and linked_issue_id in pulls_by_id):
             print(f"Link {issue_id} <-> {linked_issue_id}")
-            issue_to_linked_issues[issue_id].add(linked_issue_id)
+            issue_links[issue_id].add(linked_issue_id)
 
     filtered_parsed_issue_links: list[dict] = []
     filtered_parsed_issue_links_unique: set[tuple[int, int]] = set()
@@ -74,7 +75,7 @@ def filter_linked_issues(
         issue_id = url_to_id(parsed_issue_link['issue_html_url'])
         linked_issue_id = url_to_id(parsed_issue_link['linked_issue_html_url'])
 
-        if issue_id not in issue_to_linked_issues or linked_issue_id not in issue_to_linked_issues[issue_id]:
+        if issue_id not in issue_links or linked_issue_id not in issue_links[issue_id]:
             print(f'Not enough information or not an issue <-> pull request link. '
                   f'Skipping {parsed_issue_link["issue_html_url"]} <-> {parsed_issue_link["linked_issue_html_url"]}')
             continue
@@ -87,22 +88,22 @@ def filter_linked_issues(
         pull_request = pulls_by_id[pull_id]
 
         # If more than one issue to pull request -- skip as it probably contains changes from several issues
-        if (len(issue_to_linked_issues.get(pull_id, set())) > 1 or
-                (len(issue_to_linked_issues.get(pull_id, set())) == 1 and
-                 linked_issue_id not in issue_to_linked_issues[pull_id])):
+        if (len(issue_links.get(pull_id, set())) > 1 or
+                (len(issue_links.get(pull_id, set())) == 1 and
+                 linked_issue_id not in issue_links[pull_id])):
             print(f"Pull request connected to more then one issue. "
                   f"Skipping pull request {pull_request['html_url']} ...")
             continue
 
         # If more than one pull request to one issue -- skip as it probably fixed in several pull requests
-        if (len(issue_to_linked_issues.get(linked_issue_id, set())) > 1 or
-                (len(issue_to_linked_issues.get(linked_issue_id, set())) == 1 and
-                 pull_id not in issue_to_linked_issues[linked_issue_id])):
+        if (len(issue_links.get(linked_issue_id, set())) > 1 or
+                (len(issue_links.get(linked_issue_id, set())) == 1 and
+                 pull_id not in issue_links[linked_issue_id])):
             print(f"Linked issue connected to more then one pull request. "
                   f"Skipping pull request {pull_request['html_url']} ...")
             continue
 
-        if linked_issue_id in issue_to_linked_issues.get(pull_id, set()) and pull_id not in issue_to_linked_issues.get(
+        if linked_issue_id in issue_links.get(pull_id, set()) and pull_id in issue_links.get(
                 linked_issue_id, set()):
             links_count = 2
         else:
@@ -155,6 +156,24 @@ def filter_linked_issues(
                   f"Skipping pull request {pull_request['html_url']} due to exception {e}...")
             continue
 
+        # Get only diffs without new files (new tests are excepted)
+        if any(changed_file not in repo_content for changed_file in changed_files if not is_test_file(changed_file)):
+            print(f"Diff produce new files. "
+                  f"Skipping pull request {pull_request['html_url']}")
+            continue
+
+        # Check issue language is english
+        try:
+            issue_languages = detect_langs(linked_issue['body'])
+            if len(issue_languages) > 1 or issue_languages[0].lang != 'en':
+                print(f"Issue is not in english. "
+                      f"Skipping pull request {pull_request['html_url']}")
+                continue
+        except Exception as e:
+            print(f"Can not detect language. "
+                  f"Skipping pull request {pull_request['html_url']}", e)
+            continue
+
         if (pull_id, linked_issue_id) not in filtered_parsed_issue_links_unique:
             filtered_parsed_issue_links_unique.add((pull_id, linked_issue_id))
             filtered_parsed_issue_links.append({
@@ -162,12 +181,10 @@ def filter_linked_issues(
                 "issue_html_url": pull_request['html_url'],
                 "linked_issue_html_url": linked_issue['html_url'],
                 "link_type": parsed_issue_link['link_type'],
+                "link_keyword": parsed_issue_link['link_keyword'],
                 "links_count": links_count,
+                "issue_language": str(issue_languages)
             })
-
-        # Get only diffs without new files
-        if any(changed_file not in repo_content for changed_file in changed_files):
-            continue
 
     print(f"Left issues links: {len(filtered_parsed_issue_links)}")
     return list(filtered_parsed_issue_links)
