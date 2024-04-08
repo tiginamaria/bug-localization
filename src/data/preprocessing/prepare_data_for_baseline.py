@@ -33,8 +33,16 @@ def get_repo_records(repo: dict, config: DictConfig) -> List[dict]:
     repo_path = os.path.join(config.repos_path, f"{repo_owner}__{repo_name}")
 
     records = []
+    added_text_id = set()
     if issues_links is not None:
         for issues_link in issues_links:
+            issue_text_id = (f"{repo_owner}/{repo_name}/"
+                             f"{issues_link['issue_html_url'].split('/')[-1]}/"
+                             f"{issues_link['linked_issue_html_url'].split('/')[-1]}")
+            if issue_text_id in added_text_id or issues_link['status'] != 'ok':
+                continue
+
+            added_text_id.add(issue_text_id)
             try:
                 pull = pulls_by_urls[issues_link['issue_html_url']]
                 issue = issues_by_urls[issues_link['linked_issue_html_url']]
@@ -56,7 +64,6 @@ def get_repo_records(repo: dict, config: DictConfig) -> List[dict]:
                     "comment_url": issues_link['comment_html_url'],
                     "links_count": issues_link['links_count'],
                     "issue_title": str(issue['title']),
-                    "issue_language": str(issues_link["issue_language"]),
                     "link_keyword": issues_link["link_keyword"],
                     "issue_body": str(issue['body']),
                     "base_sha": pull['base']['sha'],

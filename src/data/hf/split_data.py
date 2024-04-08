@@ -2,7 +2,8 @@ import datasets
 import hydra
 from dotenv import load_dotenv
 from omegaconf import DictConfig
-
+import shutil
+from datasets import config
 from src.utils.hf_utils import update_hf_data_splits
 
 
@@ -26,5 +27,7 @@ def run_split_data(config: DictConfig):
 
 
 if __name__ == '__main__':
+    cache_dir = config.HF_DATASETS_CACHE
+    shutil.rmtree(cache_dir, ignore_errors=True)
     load_dotenv()
     run_split_data()

@@ -5,7 +5,8 @@ import hydra
 from datasets import DatasetDict, Dataset
 from dotenv import load_dotenv
 from omegaconf import DictConfig
-
+import shutil
+from datasets import config
 from src.utils.hf_utils import CATEGORIES, HUGGINGFACE_REPO
 
 
@@ -22,5 +23,7 @@ def upload_bug_localization_data(config: DictConfig):
 
 
 if __name__ == '__main__':
+    cache_dir = config.HF_DATASETS_CACHE
+    shutil.rmtree(cache_dir, ignore_errors=True)
     load_dotenv()
     upload_bug_localization_data()

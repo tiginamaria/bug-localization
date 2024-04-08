@@ -3,6 +3,7 @@ import re
 from typing import Dict, List, Tuple, Optional
 
 import git
+import unidiff
 
 from src.utils.file_utils import is_test_file
 
@@ -89,13 +90,21 @@ def parse_changed_files_from_diff(diff_str: str) -> List[str]:
     :param diff_str: diff in string format gather from `get_git_diff_between_commits`
     :return: list of changed files according to diff
     """
-    changed_files = set()
-    for line in diff_str.splitlines():
-        if line.startswith("+++ b/"):
-            file_name = line[6:]
-            changed_files.add(file_name)
+    source_files = {
+        patched_file.source_file.split("a/", 1)[-1]
+        for patched_file in unidiff.PatchSet.from_string(diff_str)
+    }
 
-    return list(changed_files)
+    return list(source_files)
+
+
+def parse_added_files_from_diff(diff_str: str) -> List[str]:
+    source_files = {
+        patched_file.target_file.split("b/", 1)[-1]
+        for patched_file in unidiff.PatchSet.from_string(diff_str) if patched_file.is_added_file
+    }
+
+    return list(source_files)
 
 
 def parse_changed_files_and_lines_from_diff(diff_str: str) -> Dict[str, List[Tuple[Tuple[int, int], Tuple[int, int]]]]:
@@ -127,13 +136,22 @@ def parse_changed_files_and_lines_from_diff(diff_str: str) -> Dict[str, List[Tup
                 changed_files[prev_file_name].append(((start1, count1), (start2, count2)))
 
         i += 1
+    # TODO:
+    # patch_set = unidiff.PatchSet(diff_str)
+    # for patched_file in patch_set:
+    #     for hunk in patched_file:
+    #         for line in hunk:
+    #             if line.is_added:
+    #                 print(f"Added line in file {patched_file.path}: {line.target_line_no}")
+    #             elif line.is_removed:
+    #                 print(f"Removed line in file {patched_file.path}: {line.source_line_no}")
 
     return changed_files
 
 
 def get_repo_content_on_commit(repo_path: str, commit_sha: str,
                                extensions: Optional[list[str]] = None,
-                               ignore_tests: bool = False) -> Dict[str, str]:
+                               ignore_tests: bool = False) -> Dict[str, Optional[str]]:
     """
     Get repo content on specific commit
     :param repo_path: path to directory where repo is cloned
@@ -161,9 +179,9 @@ def get_repo_content_on_commit(repo_path: str, commit_sha: str,
                         content = file.read()
                         file_contents[file_path] = str(content)
                     except Exception as e:
-                        file_contents[file_path] = ""
+                        file_contents[file_path] = None
                         # print(f"Can not read file with ext {file_path}. Replace with empty string...", e)
             except Exception as e:
-                file_contents[file_path] = ""
+                file_contents[file_path] = None
     repo.git.checkout('HEAD', '.')
     return file_contents

@@ -5,6 +5,7 @@ from typing import List, Optional, Tuple
 import hydra
 from omegaconf import DictConfig
 
+from src.data.preprocessing.utils import remove_comments, remove_code
 from src.utils.jsonl_utils import get_jsonl_data, save_jsonl_data
 from src.utils.processing_utils import process_repos_data
 
@@ -43,6 +44,9 @@ def parse_linked_issues_from_comment(comment_text: str) -> List[Tuple[int, str, 
         "file": r"(\w+\s)?[^\/\s]+\/[^\/\s]+#(?P<issue_number>\d+)(\s\w+)?",
     }
 
+    comment_text = remove_comments(comment_text)
+    comment_text = remove_code(comment_text)
+
     linked_issues = []
     for p_type, p in patterns.items():
         try:
@@ -69,7 +73,6 @@ def parse_linked_issues_from_comments(
         repo_name: str,
         issues_comments_path: str,
         pull_requests_comments_path: str,
-        issues_path: str,
         pull_requests_path: str,
 ) -> list[dict]:
     issues_links = []
@@ -93,17 +96,17 @@ def parse_linked_issues_from_comments(
     else:
         comments += pull_requests
 
-    issues = get_jsonl_data(issues_path, repo_owner, repo_name)
-    if issues is None:
-        print(f"Issues are missed for repo {repo_owner}/{repo_name}")
-    else:
-        comments += issues
-
     for comment in comments:
         if comment['body'] is None:
             print(f"Comment {comment['html_url']} body is None. Skipping...")
             continue
-        parsed_issue_links = parse_linked_issues_from_comment(comment['body'])
+
+        comment_text = comment['body']
+        if 'title' in comment:
+            # Add pull request title to comment text
+            comment_text = comment['title'] + '\n' + comment_text
+
+        parsed_issue_links = parse_linked_issues_from_comment(comment_text)
         comment_html_url = comment['html_url']
         for issue_id, link_keyword, link_type in parsed_issue_links:
             issues_links.append(
@@ -140,7 +143,6 @@ def get_linked_issues_from_comments(
     issues_links = parse_linked_issues_from_comments(repo_owner, repo_name,
                                                      config.issues_comments_path,
                                                      config.pull_requests_comments_path,
-                                                     config.issues_path,
                                                      config.pulls_path)
     print(f"Collected {len(issues_links)} issue links")
     save_jsonl_data(repo_owner, repo_name, issues_links, config.issues_links_path)
