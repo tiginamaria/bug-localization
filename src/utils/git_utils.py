@@ -1,5 +1,5 @@
 import os
-import re
+from collections import defaultdict
 from typing import Dict, List, Tuple, Optional
 
 import git
@@ -107,46 +107,23 @@ def parse_added_files_from_diff(diff_str: str) -> List[str]:
     return list(source_files)
 
 
-def parse_changed_files_and_lines_from_diff(diff_str: str) -> Dict[str, List[Tuple[Tuple[int, int], Tuple[int, int]]]]:
+def parse_changed_files_and_lines_from_diff(diff_str: str) -> Dict[str, list[tuple[int, str, str]]]:
     """
     Parse change file names and lines in it from diff
     :param diff_str: diff in string format gather from `get_git_diff_between_commits`
     :return: dict from file path to lines for each changed files according to diff
     """
-    changed_files = dict()
-    diff_lines = diff_str.splitlines()
-    changed_line_regex = re.compile(r"@@ ([-+]\d+,\d+) ([-+]\d+,\d+) @@")
+    changed_files_and_lines = defaultdict(list)
+    patch_set = unidiff.PatchSet(diff_str)
+    for patched_file in patch_set:
+        for hunk in patched_file:
+            for line in hunk:
+                if line.is_added:
+                    changed_files_and_lines[patched_file.path].append((line.target_line_no - 1, 'a', line.value))
+                elif line.is_removed:
+                    changed_files_and_lines[patched_file.path].append((line.source_line_no - 1, 'r', line.value))
 
-    i = 0
-    prev_file_name = None
-    while i < len(diff_lines):
-        line = diff_lines[i]
-        if line.startswith("+++ b/"):
-            file_name = line[6:]
-            changed_files[file_name] = []
-            prev_file_name = file_name
-
-        if prev_file_name is not None:
-
-            matches = changed_line_regex.findall(line)
-
-            for match in matches:
-                start1, count1 = map(int, match[0][1:].split(","))
-                start2, count2 = map(int, match[1][1:].split(","))
-                changed_files[prev_file_name].append(((start1, count1), (start2, count2)))
-
-        i += 1
-    # TODO:
-    # patch_set = unidiff.PatchSet(diff_str)
-    # for patched_file in patch_set:
-    #     for hunk in patched_file:
-    #         for line in hunk:
-    #             if line.is_added:
-    #                 print(f"Added line in file {patched_file.path}: {line.target_line_no}")
-    #             elif line.is_removed:
-    #                 print(f"Removed line in file {patched_file.path}: {line.source_line_no}")
-
-    return changed_files
+    return dict(changed_files_and_lines)
 
 
 def get_repo_content_on_commit(repo_path: str, commit_sha: str,

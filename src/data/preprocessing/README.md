@@ -37,7 +37,7 @@ Gets all issues <-> linked issues links and leaves only:
 in format jsonl `{repo_owner}__{repo_name}.jsonl`. 
 Jsons are saved to `issues_links_filtered_path` defined in [config](../../../configs/data/server.yaml).
 
-### [prepare_data_for_baseline.py](prepare_data_for_baseline.py)
+### [prepare_data_for_baseline.py](prepare_data_for_analysis.py)
 Collects all gathered data to jsonl/csv files splitted by language:
 * py - diff contains files written on Python
 * java - diff contains files written on Java

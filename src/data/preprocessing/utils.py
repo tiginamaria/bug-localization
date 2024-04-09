@@ -42,3 +42,16 @@ def remove_code(text: str) -> str:
     code_pattern = r"```[\s\S]*?```"
     text = re.sub(code_pattern, "", text)
     return text
+
+
+def get_links(text: str) -> list[str]:
+    url_pattern = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
+    urls = re.findall(url_pattern, text)
+    return urls
+
+
+def get_code_blocks(text: str) -> list[str]:
+    code_pattern = re.compile(r'```(.*?)```', re.DOTALL)
+    code_blocks = re.findall(code_pattern, text)
+
+    return code_blocks
