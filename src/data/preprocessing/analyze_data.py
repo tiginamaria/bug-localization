@@ -86,13 +86,13 @@ def add_stats(config: DictConfig, dp, category: str):
     dp['repo_lines_count'] = count_repo_lines(repo_content)
     dp['repo_files_without_tests_count'] = len(repo_content)
 
-    dp['changed_symbol_count'] = count_changed_symbols(changed_files_and_lines)
+    dp['changed_symbols_count'] = count_changed_symbols(changed_files_and_lines)
     dp['changed_tokens_count'] = count_changed_tokens(changed_files_and_lines)
     dp['changed_lines_count'] = count_changed_lines(changed_files_and_lines)
     dp['changed_files_without_tests_count'] = len([f for f in changed_files if f in repo_content])
 
     issue_text = dp['issue_body']
-    dp['issue_symbol_count'] = count_symbols(issue_text)
+    dp['issue_symbols_count'] = count_symbols(issue_text)
     dp['issue_tokens_count'] = count_tokens(issue_text)
     dp['issue_lines_count'] = count_lines(issue_text)
     dp['issue_links_count'] = len(get_links(dp['issue_body']))
