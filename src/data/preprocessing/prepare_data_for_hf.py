@@ -33,6 +33,8 @@ def filter_outliers(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna()
     # 0.99 quantile
     df = df[df['changed_files_count'] <= 22]
+    # 0.99 quantile
+    df = df[df['changed_lines_count'] <= 765]
     # Should not filter anything but for more sure
     df = df[df['changed_files_without_tests_count'] > 0]
     # 0.01 quantile
