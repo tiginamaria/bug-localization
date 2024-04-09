@@ -52,6 +52,7 @@ def get_repo_records(repo: dict, config: DictConfig) -> List[dict]:
             except Exception as e:
                 print("Failed to get data", e)
                 continue
+
             records.append(
                 {
                     "text_id": f"{repo_owner}/{repo_name}/"
@@ -120,7 +121,7 @@ def main(config: DictConfig):
 
     df = pd.DataFrame.from_records(results)
     df = df.sort_values('stars', ascending=False)
-    df['id'] = df.index
+    df.insert(0, 'id', df.index)
     df_by_language = split_by_language(df)
 
     os.makedirs(config.bug_localization_data_path, exist_ok=True)

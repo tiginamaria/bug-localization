@@ -39,7 +39,7 @@ class FilterStatus(Enum):
 
     PR_TO_MULTI_ISSUES = "pr_to_multi_issues"
     ISSUE_TO_MULTI_PRS = "issue_to_multi_prs"
-
+    NO_FIX_KEYWORD = "no_fix_keyword"
 
 def has_info_about_issues(issue_id: int, linked_issue_id: int, issue_links: dict) -> FilterStatus:
     # Check there is info about issue and linked issue
@@ -107,8 +107,9 @@ def apply_diff_filters(repo_path: str, pull_request: dict) -> FilterStatus:
 
     # Check diff between base and head commit can be extracted
     try:
-        changed_files = parse_changed_files_from_diff(diff)
-        added_files = parse_added_files_from_diff(diff)
+        changed_files = [f for f in parse_changed_files_from_diff(diff) if not is_test_file(f)]
+        added_files = [f for f in parse_added_files_from_diff(diff) if not is_test_file(f)]
+
         if len(changed_files) < 0:
             print(f"No changed files found. "
                   f"Skipping pull request {pull_request['html_url']} ...")
@@ -119,7 +120,7 @@ def apply_diff_filters(repo_path: str, pull_request: dict) -> FilterStatus:
         return FilterStatus.DIFF_CAN_NOT_EXTRACT
 
     # Get only diffs without new files (new tests are excepted)
-    if any(added_file for added_file in added_files if not is_test_file(added_file)):
+    if len(added_files) > 0:
         print(f"Diff contains new files. "
               f"Skipping pull request {pull_request['html_url']} ...")
         return FilterStatus.DIFF_HAS_NEW_FILES
@@ -146,8 +147,7 @@ def apply_diff_filters(repo_path: str, pull_request: dict) -> FilterStatus:
         return FilterStatus.DIFF_CAN_NOT_EXTRACT_CHANGED_FILES
 
     # Can read all files in diff
-    if any(changed_file not in repo_content or repo_content[changed_file] is None
-           for changed_file in changed_files if not is_test_file(changed_file)):
+    if any(changed_file not in repo_content or repo_content[changed_file] is None for changed_file in changed_files):
         print(f"Failed to get all files from diff. "
               f"Skipping pull request {pull_request['html_url']} ...")
         return FilterStatus.DIFF_CAN_NOT_EXTRACT_CHANGED_FILES
@@ -155,7 +155,7 @@ def apply_diff_filters(repo_path: str, pull_request: dict) -> FilterStatus:
     return FilterStatus.OK
 
 
-def apply_issue_links_filter(pull_id: int, pull_links: set, linked_issue_id: int, issue_links: set) \
+def apply_issue_links_filter(parsed_issue_link: dict, pull_id: int, pull_links: set, linked_issue_id: int, issue_links: set) \
         -> FilterStatus:
     # If more than one issue to pull request -- skip as it probably contains changes from several issues
     if len(pull_links) > 1 or (len(pull_links) == 1 and linked_issue_id not in pull_links):
@@ -166,6 +166,9 @@ def apply_issue_links_filter(pull_id: int, pull_links: set, linked_issue_id: int
     if len(issue_links) > 1 or (len(issue_links) == 1 and pull_id not in issue_links):
         print(f"Issue connected to multiple pull requests")
         return FilterStatus.ISSUE_TO_MULTI_PRS
+
+    if parsed_issue_link['link_keyword'] == "":
+        return FilterStatus.NO_FIX_KEYWORD
 
     return FilterStatus.OK
 
@@ -204,7 +207,8 @@ def filter_linked_issue(parsed_issue_link: dict,
         return status, pull_id, linked_issue_id
 
     # Apply links filter
-    status = apply_issue_links_filter(pull_id, issue_links.get(pull_id, set()),
+    status = apply_issue_links_filter(parsed_issue_link,
+                                      pull_id, issue_links.get(pull_id, set()),
                                       linked_issue_id, issue_links.get(linked_issue_id, set()))
     if status != FilterStatus.OK:
         return status, pull_id, linked_issue_id
