@@ -41,6 +41,7 @@ class FilterStatus(Enum):
     ISSUE_TO_MULTI_PRS = "issue_to_multi_prs"
     NO_FIX_KEYWORD = "no_fix_keyword"
 
+
 def has_info_about_issues(issue_id: int, linked_issue_id: int, issue_links: dict) -> FilterStatus:
     # Check there is info about issue and linked issue
     if issue_id not in issue_links or linked_issue_id not in issue_links[issue_id]:
@@ -155,7 +156,8 @@ def apply_diff_filters(repo_path: str, pull_request: dict) -> FilterStatus:
     return FilterStatus.OK
 
 
-def apply_issue_links_filter(parsed_issue_link: dict, pull_id: int, pull_links: set, linked_issue_id: int, issue_links: set) \
+def apply_issue_links_filter(parsed_issue_link: dict, pull_id: int, pull_links: set, linked_issue_id: int,
+                             issue_links: set) \
         -> FilterStatus:
     # If more than one issue to pull request -- skip as it probably contains changes from several issues
     if len(pull_links) > 1 or (len(pull_links) == 1 and linked_issue_id not in pull_links):
@@ -248,7 +250,8 @@ def filter_linked_issues(
         filtered_parsed_issue_links.append({
             "comment_html_url": parsed_issue_link['comment_html_url'],
             "issue_html_url": pulls_by_id[pull_id]['html_url'] if pull_id else parsed_issue_link['issue_html_url'],
-            "linked_issue_html_url": issues_by_id[linked_issue_id]['html_url'] if linked_issue_id else parsed_issue_link['linked_issue_html_url'],
+            "linked_issue_html_url": issues_by_id[linked_issue_id]['html_url'] if linked_issue_id else
+            parsed_issue_link['linked_issue_html_url'],
             "link_type": parsed_issue_link['link_type'],
             "link_keyword": parsed_issue_link['link_keyword'],
             "links_count": links_count,

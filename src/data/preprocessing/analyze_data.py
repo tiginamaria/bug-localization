@@ -15,20 +15,21 @@ from src.utils.git_utils import get_repo_content_on_commit, parse_changed_files_
     parse_changed_files_from_diff
 from src.utils.hf_utils import CATEGORIES
 
+tokenizer = tiktoken.encoding_for_model('gpt-4')
+
 
 def _get_changed_lines_content(changed_lines: list[tuple[int, str, str]]):
     return [changed_line[2] for changed_line in changed_lines]
 
 
 def count_changed_symbols(changed_files_and_lines: dict[str, list[tuple[int, str, str]]]):
-    return sum(len('\n'.join(_get_changed_lines_content(changed_lines)))
+    return sum(count_symbols('\n'.join(_get_changed_lines_content(changed_lines)))
                for changed_lines in changed_files_and_lines.values())
 
 
 def count_changed_tokens(changed_files_and_lines: dict[str, list[tuple[int, str, str]]]):
     try:
-        tokenizer = tiktoken.encoding_for_model('gpt-4')
-        return sum(len(tokenizer.encode('\n'.join(_get_changed_lines_content(changed_lines))))
+        return sum(count_tokens('\n'.join(_get_changed_lines_content(changed_lines)))
                    for changed_lines in changed_files_and_lines.values())
     except Exception as e:
         print(e)
@@ -39,21 +40,36 @@ def count_changed_lines(changed_files_and_lines: dict[str, list[tuple, tuple]]):
                for changed_lines in changed_files_and_lines.values())
 
 
-def count_symbols(content: dict[str, str]):
-    return sum([len(content) for content in content.values() if content])
+def count_repo_symbols(content: dict[str, str]):
+    return sum([count_symbols(content) for content in content.values() if content])
 
 
-def count_tokens(content: dict[str, str]) -> Optional[int]:
+def count_repo_tokens(content: dict[str, str]) -> Optional[int]:
     try:
-        tokenizer = tiktoken.encoding_for_model('gpt-4')
-        return sum([len(tokenizer.encode(content)) for content in content.values() if content])
+        return sum([count_tokens(content) for content in content.values() if content])
     except Exception as e:
         print(e)
     return None
 
 
-def count_lines(content: dict[str, str]):
-    return sum(len(content.split('\n')) for content in content.values() if content)
+def count_repo_lines(content: dict[str, str]):
+    return sum(count_lines(content) for content in content.values() if content)
+
+
+def count_symbols(text: str) -> int:
+    return len(text)
+
+
+def count_tokens(text: str) -> Optional[int]:
+    try:
+        return len(tokenizer.encode(text))
+    except Exception as e:
+        print(e)
+    return None
+
+
+def count_lines(text: str) -> int:
+    return len(text.split('\n'))
 
 
 def add_stats(config: DictConfig, dp, category: str):
@@ -65,9 +81,9 @@ def add_stats(config: DictConfig, dp, category: str):
     changed_files_and_lines = parse_changed_files_and_lines_from_diff(dp['diff'])
     changed_files = parse_changed_files_from_diff(dp['diff'])
 
-    dp['repo_symbols_count'] = count_symbols(repo_content)
-    dp['repo_tokens_count'] = count_tokens(repo_content)
-    dp['repo_lines_count'] = count_lines(repo_content)
+    dp['repo_symbols_count'] = count_repo_symbols(repo_content)
+    dp['repo_tokens_count'] = count_repo_tokens(repo_content)
+    dp['repo_lines_count'] = count_repo_lines(repo_content)
     dp['repo_files_without_tests_count'] = len(repo_content)
 
     dp['changed_symbol_count'] = count_changed_symbols(changed_files_and_lines)
@@ -75,6 +91,10 @@ def add_stats(config: DictConfig, dp, category: str):
     dp['changed_lines_count'] = count_changed_lines(changed_files_and_lines)
     dp['changed_files_without_tests_count'] = len([f for f in changed_files if f in repo_content])
 
+    issue_text = dp['issue_body']
+    dp['issue_symbol_count'] = count_symbols(issue_text)
+    dp['issue_tokens_count'] = count_tokens(issue_text)
+    dp['issue_lines_count'] = count_lines(issue_text)
     dp['issue_links_count'] = len(get_links(dp['issue_body']))
     dp['issue_code_blocks_count'] = len(get_code_blocks(dp['issue_body']))
 

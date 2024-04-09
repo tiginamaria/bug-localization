@@ -26,6 +26,16 @@ def add_stats(dp, dp_info):
     return dp
 
 
+def filter_outliers(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.dropna()
+    # 0.99 quantile
+    df = df[df['changed_files'] <= 22]
+    # Should not filter anything but for more sure
+    df = df[df['changed_files_without_tests_count'] > 0]
+
+    return df
+
+
 def prepare_dataset(config: DictConfig):
     stats_df = pd.read_csv(os.path.join(config.bug_localization_data_path, 'metrics.csv'))
 
@@ -41,6 +51,8 @@ def prepare_dataset(config: DictConfig):
         results = [dp for dps in results for dp in dps]
 
         df = pd.DataFrame(results)
+        df = filter_outliers(df)
+
         df.to_csv(os.path.join(config.bug_localization_data_path, f"bug_localization_data_{category}.csv"),
                   escapechar="\\", index=False)
         df.to_json(os.path.join(config.bug_localization_data_path, f"bug_localization_data_{category}.jsonl"),
