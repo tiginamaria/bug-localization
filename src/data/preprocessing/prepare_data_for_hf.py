@@ -34,13 +34,13 @@ def filter_outliers(df: pd.DataFrame) -> pd.DataFrame:
     # 0.99 quantile
     df = df[df['changed_files_count'] <= 22]
     # 0.99 quantile
-    df = df[df['changed_lines_count'] <= 765]
+    df = df[df['changed_lines_count'] <= 594]
     # Should not filter anything but for more sure
     df = df[df['changed_files_without_tests_count'] > 0]
     # 0.01 quantile
     df = df[df['issue_tokens_count'] >= 13]
     # 0.99 quantile
-    df = df[df['issue_tokens_count'] <= 4500]
+    df = df[df['issue_tokens_count'] <= 4491]
 
     df['repo_tokens_count'] = df['repo_tokens_count'].astype(int)
     df['changed_tokens_count'] = df['changed_tokens_count'].astype(int)

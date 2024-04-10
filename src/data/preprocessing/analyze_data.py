@@ -79,7 +79,9 @@ def add_stats(config: DictConfig, dp, category: str):
     repo_content = get_repo_content_on_commit(repo_path, dp["base_sha"], extensions=extensions, ignore_tests=True)
 
     changed_files_and_lines = parse_changed_files_and_lines_from_diff(dp['diff'])
+    changed_files_and_lines = {f: d for f, d, in changed_files_and_lines.items() if f in repo_content}
     changed_files = parse_changed_files_from_diff(dp['diff'])
+    changed_files = [f for f in changed_files if f in repo_content]
 
     dp['repo_symbols_count'] = count_repo_symbols(repo_content)
     dp['repo_tokens_count'] = count_repo_tokens(repo_content)
@@ -89,7 +91,7 @@ def add_stats(config: DictConfig, dp, category: str):
     dp['changed_symbols_count'] = count_changed_symbols(changed_files_and_lines)
     dp['changed_tokens_count'] = count_changed_tokens(changed_files_and_lines)
     dp['changed_lines_count'] = count_changed_lines(changed_files_and_lines)
-    dp['changed_files_without_tests_count'] = len([f for f in changed_files if f in repo_content])
+    dp['changed_files_without_tests_count'] = len(changed_files)
 
     issue_text = dp['issue_body']
     dp['issue_symbols_count'] = count_symbols(issue_text)
