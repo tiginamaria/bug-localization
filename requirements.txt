@@ -19,3 +19,4 @@ python-dotenv~=1.0.1
 anthropic~=0.21.3
 tiktoken~=0.6.0
 unidiff~=0.7.5
+torch~=2.2.2
