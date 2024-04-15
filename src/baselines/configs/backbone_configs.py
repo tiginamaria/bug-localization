@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 
 from omegaconf import MISSING
 
-from src.configs.prompt_configs import PromptConfig
+from src.baselines.configs.prompt_configs import PromptConfig
 
 
 @dataclass

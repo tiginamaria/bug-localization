@@ -1,11 +1,13 @@
-from typing import List, Dict
+import json
+import re
+from typing import List, Dict, Any, Optional
 
-from src.baselines.prompts.base_prompt import BugLocalizationPrompt
+from src.baselines.prompts.base_prompt import BasePrompt
 from src.utils.tokenization_utils import TokenizationUtils
 
 
 def check_match_context_size(tokenization_utils: TokenizationUtils,
-                             prompt: BugLocalizationPrompt,
+                             prompt: BasePrompt,
                              issue_description: str,
                              project_content: Dict[str, str],
                              is_chat: bool):
@@ -18,7 +20,7 @@ def check_match_context_size(tokenization_utils: TokenizationUtils,
 
 
 def batch_project_context(model: str,
-                          prompt: BugLocalizationPrompt,
+                          prompt: BasePrompt,
                           issue_description: str,
                           project_content: Dict[str, str],
                           is_chat: bool) -> List[Dict[str, str]]:
@@ -45,3 +47,42 @@ def batch_project_context(model: str,
     assert len(file_paths) == sum(len(b) for b in batched_project_content)
 
     return batched_project_content
+
+
+def parse_json_response(response: str) -> Optional[dict[str, Any]]:
+    try:
+        return json.loads(response)
+    except json.decoder.JSONDecodeError:
+        print("Failed to parse raw json from response", response)
+
+    pattern = r'```json\s*([\s\S]*?)\s*```'
+    match = re.search(pattern, response, re.MULTILINE)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except json.decoder.JSONDecodeError:
+            print("Failed to parse code json from response", response)
+
+    return None
+
+
+def parse_list_files_completion(raw_completion: str, repo_content: dict[str, str]) -> List[str]:
+    json_data = parse_json_response(raw_completion)
+    list_files = []
+
+    # If data in json format
+    if json_data:
+        if 'files' in json_data:
+            for file in json_data['files']:
+                if file in repo_content.keys():
+                    list_files.append(file)
+        else:
+            print("No 'file' key in json output")
+
+    # If data in list files format
+    else:
+        for file in raw_completion.split('\n'):
+            if file in repo_content.keys():
+                list_files.append(file)
+
+    return list_files

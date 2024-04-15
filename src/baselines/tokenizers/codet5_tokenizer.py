@@ -1,7 +1,8 @@
 import numpy as np
 
-from src.baselines.model.baseline_tokenizers import BaseTokenizer
 from transformers import AutoTokenizer
+
+from src.baselines.tokenizers.base_tokenizer import BaseTokenizer
 
 
 class CodeT5Tokenizer(BaseTokenizer):

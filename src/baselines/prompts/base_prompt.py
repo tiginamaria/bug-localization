@@ -4,14 +4,14 @@ from typing import List
 from src.baselines.utils.type_utils import ChatMessage
 
 
-class BugLocalizationPrompt(ABC):
+class BasePrompt(ABC):
 
     @abstractmethod
-    def _base_prompt(self, issue_description: str, project_content: dict[str, str]) -> str:
+    def base_prompt(self, issue_description: str, project_content: dict[str, str]) -> str:
         pass
 
     def complete(self, issue_description: str, project_content: dict[str, str]) -> str:
-        return self._base_prompt(issue_description, project_content)
+        return self.base_prompt(issue_description, project_content)
 
     def chat(self, issue_description: str, project_content: dict[str, str]) -> List[ChatMessage]:
         return [
@@ -22,6 +22,6 @@ class BugLocalizationPrompt(ABC):
             },
             {
                 "role": "user",
-                "content": self._base_prompt(issue_description, project_content)
+                "content": self.base_prompt(issue_description, project_content)
             },
         ]
