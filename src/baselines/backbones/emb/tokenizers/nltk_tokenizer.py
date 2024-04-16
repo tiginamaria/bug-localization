@@ -6,7 +6,7 @@ import numpy as np
 from nltk import word_tokenize, PorterStemmer, WordNetLemmatizer
 from nltk.corpus import stopwords
 
-from src.baselines.tokenizers.base_tokenizer import BaseTokenizer
+from src.baselines.backbones.emb.tokenizers.base_tokenizer import BaseTokenizer
 
 
 class NltkTokenizer(BaseTokenizer):

@@ -99,3 +99,7 @@ class TokenizationUtils:
             return self._tokenizer.decode(encoding)
 
         raise ValueError(f"{self._model_provider} is currently not supported for prompt truncation.")
+
+
+if __name__ == '__main__':
+    print(TokenizationUtils("gpt-4-0613").count_text_tokens("sfef efwe ef"))

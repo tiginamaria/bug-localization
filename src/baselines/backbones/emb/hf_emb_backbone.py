@@ -6,7 +6,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from src.baselines.backbones.base_backbone import BaseBackbone
-from src.baselines.rankers.base_ranker import BaseRanker
+from src.baselines.backbones.emb.rankers.base_ranker import BaseRanker
 from src.baselines.utils.embed_utils import data_to_vectors
 
 

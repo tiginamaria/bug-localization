@@ -10,4 +10,4 @@ class PromptConfig:
 
 @dataclass
 class FileListPromptConfig(PromptConfig):
-    _target_: str = f"src.baselines.prompts.FileListPrompt"
+    _target_: str = f"src.baselines.backbones.gen.prompts.file_list_prompt.FileListPrompt"

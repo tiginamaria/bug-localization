@@ -1,5 +1,5 @@
 backbone:
-  _target_: src.baselines.backbones.openai_backbone.OpenAIBackbone
+  _target_: src.baselines.backbones.gen.openai_gen_backbone.OpenAIGenBackbone
   prompt:
     _target_: src.baselines.prompts.file_list_prompt.FileListPrompt
   model_name: gpt-3.5-turbo-16k

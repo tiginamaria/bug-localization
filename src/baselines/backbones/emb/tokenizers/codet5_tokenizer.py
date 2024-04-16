@@ -2,7 +2,7 @@ import numpy as np
 
 from transformers import AutoTokenizer
 
-from src.baselines.tokenizers.base_tokenizer import BaseTokenizer
+from src.baselines.backbones.emb.tokenizers.base_tokenizer import BaseTokenizer
 
 
 class CodeT5Tokenizer(BaseTokenizer):

@@ -4,10 +4,9 @@ from typing import Optional
 import numpy as np
 from tokenizers import Tokenizer
 from tokenizers.models import BPE
-from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import BpeTrainer
 
-from src.baselines.tokenizers.base_tokenizer import BaseTokenizer
+from src.baselines.backbones.emb.tokenizers.base_tokenizer import BaseTokenizer
 
 
 class BPETokenizer(BaseTokenizer):
@@ -25,7 +24,6 @@ class BPETokenizer(BaseTokenizer):
             pass
         else:
             self.tokenizer = Tokenizer(BPE())
-            self.tokenizer.pre_tokenizer = Whitespace()
             trainer = BpeTrainer(vocab_size=self.vocab_size, min_frequency=self.min_frequency)
             self.tokenizer.train_from_iterator(file_contents, trainer, length=len(file_contents))
             os.makedirs(self.pretrained_path, exist_ok=True)

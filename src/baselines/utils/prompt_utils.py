@@ -2,7 +2,7 @@ import json
 import re
 from typing import List, Dict, Any, Optional
 
-from src.baselines.prompts.base_prompt import BasePrompt
+from src.baselines.backbones.gen.prompts.base_prompt import BasePrompt
 from src.utils.tokenization_utils import TokenizationUtils
 
 

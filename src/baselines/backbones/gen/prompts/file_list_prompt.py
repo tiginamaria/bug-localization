@@ -1,5 +1,5 @@
-from src.baselines.prompts.base_prompt import BasePrompt
-from src.baselines.prompts.prompt_templates import FILE_LIST_PROMPT_TEMPLATE
+from src.baselines.backbones.gen.prompts.base_prompt import BasePrompt
+from src.baselines.backbones.gen.prompts.prompt_templates import FILE_LIST_PROMPT_TEMPLATE
 
 
 class FileListPrompt(BasePrompt):

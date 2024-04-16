@@ -1,9 +1,9 @@
 backbone:
-  _target_: src.baselines.backbones.openai_backbone.TFIDFBackbone
+  _target_: src.baselines.backbones.emb.tfidf_emb_backbone.TfIdfEmbBackbone
   model_name: tf-idf
   pretrained_path: null
   tokenizer:
-    _target_: src.baselines.tokenizers.bpe_tokenizer.BPETokenizer
+    _target_: src.baselines.backbones.emb.tokenizers.bpe_tokenizer.BPETokenizer
     vocab_size: 10000
     min_frequency: 2
     pretrained_path: null

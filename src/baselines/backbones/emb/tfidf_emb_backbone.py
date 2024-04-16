@@ -3,20 +3,20 @@ from typing import Dict, Any
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from src.baselines.backbones.base_backbone import BaseBackbone
-from src.baselines.rankers.base_ranker import BaseRanker
-from src.baselines.tokenizers.base_tokenizer import BaseTokenizer
+from src.baselines.backbones.emb.rankers.base_ranker import BaseRanker
+from src.baselines.backbones.emb.tokenizers.base_tokenizer import BaseTokenizer
 from src.baselines.utils.embed_utils import data_to_vectors
 
 
 class TfIdfEmbBackbone(BaseBackbone):
 
     def __init__(self,
-                 pretrained_path: str,
                  tokenizer: BaseTokenizer,
-                 ranker: BaseRanker):
-        self._pretrained_path = pretrained_path
+                 ranker: BaseRanker,
+                 pretrained_path: str):
         self._tokenizer = tokenizer
         self._ranker = ranker
+        self._pretrained_path = pretrained_path
 
     @staticmethod
     def name():

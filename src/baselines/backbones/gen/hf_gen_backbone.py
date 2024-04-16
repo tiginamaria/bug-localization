@@ -5,7 +5,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from src.baselines.backbones.base_backbone import BaseBackbone
-from src.baselines.prompts.base_prompt import BasePrompt
+from src.baselines.backbones.gen.prompts.base_prompt import BasePrompt
 from src.baselines.utils.prompt_utils import batch_project_context
 
 
