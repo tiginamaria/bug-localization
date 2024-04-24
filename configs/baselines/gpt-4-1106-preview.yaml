@@ -1,7 +1,7 @@
 backbone:
   _target_: src.baselines.backbones.gen.openai_gen_backbone.OpenAIGenBackbone
   prompt:
-    _target_: src.baselines.prompts.file_list_prompt.FileListPrompt
+    _target_: src.baselines.backbones.gen.prompts.file_list_prompt.FileListPrompt
   model_name: gpt-4-1106-preview
   api_key: null
   parameters:

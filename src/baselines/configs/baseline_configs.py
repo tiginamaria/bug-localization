@@ -12,8 +12,10 @@ from src.baselines.configs.tokenizer_config import NltkTokenizerConfig
 
 @dataclass
 class BaselineConfig:
+    name: str = MISSING
     backbone: BackboneConfig = MISSING
     data_src: DataSourceConfig = MISSING
+    output_path: str = MISSING
 
 
 cs = ConfigStore.instance()

@@ -12,6 +12,7 @@ class DataSourceConfig:
 @dataclass
 class HFDataSourceConfig(DataSourceConfig):
     _target_: str = f"src.baselines.data_sources.hf.HFDataSource"
+    repos_dir: str = MISSING
     cache_dir: Optional[str] = None
     hub_name: str = MISSING
     configs: List[str] = MISSING

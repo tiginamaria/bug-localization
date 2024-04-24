@@ -1,14 +1,16 @@
+name: gpt-3.5-turbo-1106
 backbone:
   _target_: src.baselines.backbones.gen.openai_gen_backbone.OpenAIGenBackbone
   prompt:
-    _target_: src.baselines.prompts.file_list_prompt.FileListPrompt
-  model_name: gpt-3.5-turbo-16k
+    _target_: src.baselines.backbones.gen.prompts.file_list_prompt.FileListPrompt
+  model_name: gpt-3.5-turbo-1106
   api_key: null
   parameters:
     seed: 76097149
     temperature: 0
 data_src:
   _target_: src.baselines.data_sources.hf.HFDataSource
+  repos_dir:  /mnt/data/shared-data/lca/bug_localization_results/repos
   cache_dir: null
   hub_name: tiginamaria/bug-localization
   configs:
@@ -16,4 +18,4 @@ data_src:
     - java
     - kt
   split: test
-output_path: /Users/Maria.Tigina/PycharmProjects/lca-baselines/data/lca-bug-localization
+output_path: /mnt/data/shared-data/lca/bug_localization_results/output
