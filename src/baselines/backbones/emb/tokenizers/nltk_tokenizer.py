@@ -6,19 +6,16 @@ import numpy as np
 from nltk import word_tokenize, PorterStemmer, WordNetLemmatizer
 from nltk.corpus import stopwords
 
-from src.baselines.model.baseline_tokenizers import BaseTokenizer
+from src.baselines.backbones.emb.tokenizers.base_tokenizer import BaseTokenizer
 
 
 class NltkTokenizer(BaseTokenizer):
+    name = 'nltk'
 
     def __init__(self):
         nltk.download('punkt')
         nltk.download('stopwords')
         nltk.download('wordnet')
-
-    @staticmethod
-    def name():
-        return 'nltk'
 
     @staticmethod
     def _camel_case_split(token: str) -> list[str]:
