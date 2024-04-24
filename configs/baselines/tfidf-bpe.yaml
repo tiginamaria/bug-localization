@@ -7,12 +7,15 @@ backbone:
     vocab_size: 10000
     min_frequency: 2
     pretrained_path: null
-data:
+  ranker:
+    _target_: src.baselines.backbones.emb.rankers.cosine_distance_ranker.CosineDistanceRanker
+data_src:
   _target_: src.baselines.data_sources.hf.HFDataSource
   cache_dir: null
   hub_name: tiginamaria/bug-localization
   configs:
-  - py
-  - java
-  - kt
+    - py
+    - java
+    - kt
   split: test
+output_path: /Users/Maria.Tigina/PycharmProjects/lca-baselines/data/lca-bug-localization

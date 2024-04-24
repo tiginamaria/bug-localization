@@ -6,13 +6,14 @@ backbone:
   api_key: null
   parameters:
     seed: 76097149
-    temperature: 0.8
-data:
+    temperature: 0
+data_src:
   _target_: src.baselines.data_sources.hf.HFDataSource
   cache_dir: null
   hub_name: tiginamaria/bug-localization
   configs:
-  - py
-  - java
-  - kt
+    - py
+    - java
+    - kt
   split: test
+output_path: /Users/Maria.Tigina/PycharmProjects/lca-baselines/data/lca-bug-localization
