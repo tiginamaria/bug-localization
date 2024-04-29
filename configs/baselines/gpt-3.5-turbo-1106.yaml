@@ -10,7 +10,7 @@ backbone:
     temperature: 0
 data_src:
   _target_: src.baselines.data_sources.hf.HFDataSource
-  repos_dir:  /mnt/data/shared-data/lca/bug_localization_results/repos
+  repos_dir:  /mnt/data/shared-data/lca/repos_updated
   cache_dir: null
   hub_name: tiginamaria/bug-localization
   configs:
@@ -19,3 +19,4 @@ data_src:
     - kt
   split: test
 output_path: /mnt/data/shared-data/lca/bug_localization_results/output
+

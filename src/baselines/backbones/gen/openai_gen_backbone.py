@@ -29,8 +29,9 @@ class OpenAIGenBackbone(BaseBackbone):
 
     @backoff.on_exception(backoff.expo, openai.APIError)
     def _get_chat_completion(self, messages: List[ChatMessage]) -> ChatCompletion:
-        return self._client.chat.completions.create(messages=messages, model=self._model_name,
-                                                    **self._parameters)  # type: ignore[arg-type]
+        return self._client.chat.completions.create(
+            messages=messages, model=self._model_name, **self._parameters
+        )
 
     @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
     def localize_bugs(self, issue_description: str, repo_content: dict[str, str]) -> Dict[str, Any]:
@@ -47,9 +48,10 @@ class OpenAIGenBackbone(BaseBackbone):
             raw_completion_content = completion.choices[0].message.content
             raw_completions.append(raw_completion_content)
 
-            expected_files += parse_list_files_completion(raw_completion_content, repo_content)
+            expected_files.update(parse_list_files_completion(raw_completion_content, repo_content))
 
         return {
             "expected_files": list(expected_files),
-            "raw_completions": raw_completions
+            "raw_completions": raw_completions,
+            "butches_count": len(batched_project_contents)
         }

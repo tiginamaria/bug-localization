@@ -21,8 +21,9 @@ def main(cfg: BaselineConfig) -> None:
     OmegaConf.save(config=cfg, f=f"{cfg.name}.yaml")
     results_csv_path = os.path.join(results_path, "results.csv")
 
-    for dp, repo_content in data_src:
-        results_dict = backbone.localize_bugs(dp['issue_text'], repo_content)
+    for dp, repo_content, changed_files in data_src:
+        issue_description = dp['issue_title'] + '\n' + dp['issue_body']
+        results_dict = backbone.localize_bugs(issue_description, repo_content)
         results_dict['text_id'] = dp['text_id']
 
         with open(results_csv_path, 'a', newline='') as f:

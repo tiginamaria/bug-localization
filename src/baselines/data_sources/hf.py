@@ -8,7 +8,7 @@ from datasets import get_dataset_config_names, load_dataset  # type: ignore[impo
 from huggingface_hub import hf_hub_download
 
 from .base import BaseDataSource
-from src.utils.git_utils import get_repo_content_on_commit
+from src.utils.git_utils import get_repo_content_on_commit, get_changed_files_between_commits
 from src.utils.hf_utils import HUGGINGFACE_REPO, FEATURES, CATEGORIES
 
 
@@ -82,7 +82,8 @@ class HFDataSource(BaseDataSource):
     def __iter__(self):
         for config in self._configs:
             dataset = load_dataset(self._hub_name, config, split=self._split, cache_dir=self._cache_dir)
-            self._load_repos()
+            # TODO: fix loading of repos and tar.gz opening
+            # self._load_repos()
             for dp in dataset:
                 repo_path = os.path.join(self._repos_dir, f"{dp['repo_owner']}__{dp['repo_name']}")
                 extensions = [config] if config != 'mixed' else None
@@ -90,4 +91,7 @@ class HFDataSource(BaseDataSource):
                 repo_content = get_repo_content_on_commit(repo_path, dp['base_sha'],
                                                           extensions=extensions,
                                                           ignore_tests=True)
-                yield dp, repo_content
+                changed_files = get_changed_files_between_commits(repo_path, dp['base_sha'], dp['head_sha'],
+                                                                  extensions=extensions,
+                                                                  ignore_tests=True)
+                yield dp, repo_content, changed_files
