@@ -4,10 +4,10 @@ import tarfile
 from typing import List, Optional
 
 import huggingface_hub
-from datasets import get_dataset_config_names, load_dataset  # type: ignore[import-untyped]
+from datasets import get_dataset_config_names, load_dataset
 from huggingface_hub import hf_hub_download
 
-from .base import BaseDataSource
+from .base_data_source import BaseDataSource
 from src.utils.git_utils import get_repo_content_on_commit, get_changed_files_between_commits
 from src.utils.hf_utils import HUGGINGFACE_REPO, FEATURES, CATEGORIES
 

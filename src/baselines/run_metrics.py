@@ -6,7 +6,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 from src.baselines.configs.baseline_configs import BaselineConfig
-from src.baselines.data_sources.base import BaseDataSource
+from src.baselines.data_sources.base_data_source import BaseDataSource
 
 
 @hydra.main(version_base="1.1", config_path="../../configs/baselines")
