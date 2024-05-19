@@ -4,7 +4,6 @@ import numpy as np
 
 
 class BaseTokenizer(ABC):
-    name: str = "base"
 
     @abstractmethod
     def fit(self, file_contents: np.ndarray[str]):
