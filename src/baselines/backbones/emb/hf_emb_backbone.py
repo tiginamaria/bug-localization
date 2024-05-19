@@ -29,11 +29,11 @@ class HfEmbBackbone(BaseBackbone):
     def localize_bugs(self, issue_description: str, repo_content: dict[str, str]) -> Dict[str, Any]:
         file_names, file_contents = data_to_vectors(issue_description, repo_content)
         vect_file_contents = []
-        if self._model_name == "thenlper/gte-large":
+        if self._model_name in["thenlper/gte-large", "Salesforce/SFR-Embedding-Mistral"]:
             model = SentenceTransformer(self._model_name)
-            batch_size = 10
+            batch_size = 1
             for i in range(0, len(file_contents), batch_size):
-                vect_file_contents.append(model.encode(file_contents[i: (i + batch_size)]))
+                vect_file_contents.append(model.encode(file_contents[i: (i + batch_size)], device='cpu'))
         else:
             tokenizer = AutoTokenizer.from_pretrained(self._model_name, trust_remote_code=True)
             model = AutoModel.from_pretrained(self._model_name, trust_remote_code=True).to(self._device)
